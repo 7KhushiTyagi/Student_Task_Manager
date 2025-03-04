@@ -1,6 +1,9 @@
+import "dart:ui";
+
 import "package:flutter/material.dart";
 import "package:frontend/screens/add_task_screen.dart";
 import "package:frontend/screens/sidebar_menu.dart";
+import "package:frontend/widgets/confetti.dart";
 import "package:frontend/widgets/taskcard.dart";
 import "package:provider/provider.dart";
 import "../providers/task_provider.dart";
@@ -32,52 +35,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor:
-            Colors.transparent, 
-        elevation: 10, 
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple, Colors.deepPurple], 
-                            begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.black,
+    appBar: AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 10,
+      flexibleSpace: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.purple, Colors.deepPurple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3), 
-                blurRadius: 10, 
-                offset: Offset(0, 4),
-              ),
-            ],
           ),
         ),
-        title: const Text(
-          'Hi Khushi!',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                color: Colors.black, 
-                blurRadius: 5,
-                offset: Offset(2, 2), 
-              ),
-            ],
-          ),
-        ),
-        actions: const [
-          CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(Icons.person, color: Colors.purple),
-          ),
-          SizedBox(width: 16),
-        ],
       ),
+      title: const Text(
+        'Hi Khushi!',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          shadows: [
+            Shadow(color: Colors.black, blurRadius: 5, offset: Offset(2, 2)),
+          ],
+        ),
+      ),
+      actions: const [
+        CircleAvatar(
+          backgroundColor: Colors.white,
+          child: Icon(Icons.person, color: Colors.purple),
+        ),
+        SizedBox(width: 16),
+      ],
+    ),
       drawer: const SidebarMenu(),
       body: Column(
         children: [
@@ -91,38 +94,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCalendarSection() {
-    final monthYear =
-        "${_getMonthName(_selectedDay.month)} ${_selectedDay.year}";
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                monthYear,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+Widget _buildCalendarSection() {
+  final monthYear = "${_getMonthName(_selectedDay.month)} ${_selectedDay.year}";
+  return Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              monthYear,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              IconButton(
-                icon: const Icon(Icons.calendar_today, color: Colors.white),
-                onPressed: _scrollToToday,
-              ),
-            ],
-          ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.calendar_today, color: Colors.white),
+              onPressed: _scrollToToday,
+            ),
+          ],
         ),
-        SizedBox(
-          height: 100,
+      ),
+      SizedBox(
+        height: 100,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification notification) {
+            if (notification is ScrollUpdateNotification) {
+              setState(() {});
+            }
+            return true;
+          },
           child: ListView.builder(
             controller: _scrollController,
             scrollDirection: Axis.horizontal,
-            itemCount:
-                DateTime(_selectedDay.year, _selectedDay.month + 1, 0).day,
+            itemCount: DateTime(_selectedDay.year, _selectedDay.month + 1, 0).day,
             itemBuilder: (context, index) {
               DateTime date = DateTime(
                 _selectedDay.year,
@@ -137,21 +145,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 8.0),
                   decoration: BoxDecoration(
-                    color:
-                        isSameDay(_selectedDay, date)
-                            ? Colors.orange
-                            : Colors.grey[900],
+                    color: isSameDay(_selectedDay, date)
+                        ? Colors.orange
+                        : Colors.grey[900],
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow:
-                        isSameDay(_selectedDay, date)
-                            ? [
-                              BoxShadow(
-                                color: Colors.orange.withOpacity(0.5),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                            : [],
+                    boxShadow: isSameDay(_selectedDay, date)
+                        ? [
+                            BoxShadow(
+                              color: Colors.orange.withOpacity(0.5),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [],
                   ),
                   alignment: Alignment.center,
                   width: 60,
@@ -186,9 +192,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget _buildTaskSummary(BuildContext context) {
     final taskProvider = context.watch<TaskProvider>();
@@ -364,7 +371,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildAnimatedFAB(BuildContext context) {
     return FloatingActionButton(
-      backgroundColor: Colors.purple,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       child: const Icon(Icons.add, color: Colors.white),
       onPressed: () async {
         final newTask = await Navigator.push(
@@ -378,24 +386,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBottomNavBar(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.purple,
-      unselectedItemColor: Colors.white,
+ Widget _buildBottomNavBar(BuildContext context) {
+  int _selectedIndex = 0;
+
+  return Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.purple, Colors.deepPurple],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 10,
+          offset: Offset(0, -4),
+        ),
+      ],
+    ),
+    child: BottomNavigationBar(
+      backgroundColor: Colors.transparent,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      currentIndex: _selectedIndex,
+      onTap: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.calendar_today),
           label: 'Calendar',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Study'),
-        BottomNavigationBarItem(icon: Icon(Icons.science), label: 'Science'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.school),
+          label: 'Study',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.science),
+          label: 'Science',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
       ],
-      currentIndex: 0,
-      onTap: (index) {},
-    );
-  }
+    ),
+  );
+}
 
   bool isSameDay(DateTime date, DateTime selectedDay) {
     return date.year == selectedDay.year &&

@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "../providers/task_provider.dart";
 import "../models/task.dart";
+import 'package:confetti/confetti.dart';
 
 class NewTaskScreen extends StatefulWidget {
   const NewTaskScreen({Key? key}) : super(key: key);
@@ -11,6 +12,7 @@ class NewTaskScreen extends StatefulWidget {
 }
 
 class _NewTaskScreenState extends State<NewTaskScreen> {
+  late ConfettiController _confettiController;
   String? _selectedSubject;
   String? _selectedChapter;
   final TextEditingController _subtopicController = TextEditingController();
@@ -37,6 +39,21 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   ];
   final List<String> activityTypes = ["Concept", "Notes", "Exercise"];
   final List<String> difficultyLevels = ["Easy", "Medium", "Hard"];
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 1),
+    );
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    _subtopicController.dispose();
+    super.dispose();
+  }
 
   void _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -118,17 +135,14 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         'Subject: $_selectedSubject\nChapter: $_selectedChapter\nType: $_selectedActivityType\nDifficulty: $_selectedDifficulty\nTime: ${_startTime!.format(context)} to ${_endTime!.format(context)}';
 
     final taskProvider = Provider.of<TaskProvider>(context, listen: false);
-    
-    
+
     final newTask = Task(
-      id: '', 
+      id: '',
       title: _subtopicController.text.trim(),
       description: description,
-      dueAt: endDateTime,
-      date: startDateTime, 
-      isCompleted: false,
+      date: startDateTime,
+      isCompleted: false, dueAt: DateTime.now(),
     );
-
 
     final success = await taskProvider.addTask(newTask);
 
@@ -137,12 +151,12 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     });
 
     if (success) {
-      
       Navigator.pop(context, newTask);
+      _confettiController.play();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Failed to save task. Please check your connection."),
+          content: Text("Failed to save task"),
           backgroundColor: Colors.red,
         ),
       );
@@ -199,15 +213,12 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                             _selectedSubject = newValue;
                           });
                         },
-                        items:
-                            subjects.map<DropdownMenuItem<String>>((
-                              String value,
-                            ) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
+                        items: subjects.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ),
@@ -236,15 +247,12 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                             _selectedChapter = newValue;
                           });
                         },
-                        items:
-                            chapters.map<DropdownMenuItem<String>>((
-                              String value,
-                            ) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
+                        items: chapters.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ),
@@ -285,95 +293,91 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                       // Activity type selection
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children:
-                            activityTypes.map((type) {
-                              return InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedActivityType = type;
-                                  });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        _selectedActivityType == type
-                                            ? Color(0xFF6A4FBF)
-                                            : Colors.grey[800],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    type,
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                        children: activityTypes.map((type) {
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedActivityType = type;
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _selectedActivityType == type
+                                    ? Color(0xFF6A4FBF)
+                                    : Colors.grey[800],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                type,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
 
                       SizedBox(height: 24),
                       Text(
-                        "What difficulty rating would you give for the task choosen?",
+                        "What difficulty rating would you give for the task chosen?",
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       SizedBox(height: 12),
                       // Difficulty selection
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children:
-                            difficultyLevels.map((level) {
-                              return InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedDifficulty = level;
-                                  });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 16,
+                        children: difficultyLevels.map((level) {
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedDifficulty = level;
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _selectedDifficulty == level
+                                    ? Color(0xFF6A4FBF)
+                                    : Colors.grey[800],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    level,
+                                    style: TextStyle(color: Colors.white),
                                   ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        _selectedDifficulty == level
-                                            ? Color(0xFF6A4FBF)
-                                            : Colors.grey[800],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        level,
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      if (level == "Easy") SizedBox(width: 4),
-                                      if (level == "Easy")
-                                        Icon(
-                                          Icons.add,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      if (level == "Medium") SizedBox(width: 4),
-                                      if (level == "Medium")
-                                        Icon(
-                                          Icons.add,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      if (level == "Medium")
-                                        Icon(
-                                          Icons.add,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                                  if (level == "Easy") SizedBox(width: 4),
+                                  if (level == "Easy")
+                                    Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  if (level == "Medium") SizedBox(width: 4),
+                                  if (level == "Medium")
+                                    Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  if (level == "Medium")
+                                    Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
 
                       SizedBox(height: 24),
@@ -390,7 +394,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                           width: double.infinity,
                           padding: EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Color(0xFF6A4FBF), width: 1),
+                            border: Border.all(
+                              color: Color(0xFF6A4FBF),
+                              width: 1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Center(
@@ -426,7 +433,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                                 horizontal: 16,
                               ),
                               decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xFF6A4FBF), width: 1),
+                                border: Border.all(
+                                  color: Color(0xFF6A4FBF),
+                                  width: 1,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -448,7 +458,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                                 horizontal: 16,
                               ),
                               decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xFF6A4FBF), width: 1),
+                                border: Border.all(
+                                  color: Color(0xFF6A4FBF),
+                                  width: 1,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -477,15 +490,14 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          child:
-                              _isSaving
-                                  ? CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                  : Text(
-                                    "Create Task",
-                                    style: TextStyle(fontSize: 16),
-                                  ),
+                          child: _isSaving
+                              ? CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : Text(
+                                  "Create Task",
+                                  style: TextStyle(fontSize: 16),
+                                ),
                         ),
                       ),
                     ],
@@ -499,4 +511,3 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     );
   }
 }
-
